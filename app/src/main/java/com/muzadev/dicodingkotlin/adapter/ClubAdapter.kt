@@ -5,9 +5,9 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.bumptech.glide.Glide
 import com.muzadev.dicodingkotlin.R
 import com.muzadev.dicodingkotlin.model.Club
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.item_club.view.*
 
 /**
@@ -31,9 +31,7 @@ class ClubAdapter(val context: Context, val clubs: List<Club>, val listener: (Cl
 
         fun bindItem(club: Club, listener: (Club) -> Unit) {
             itemView.tvClubName.text = club.name
-            Glide.with(itemView.context)
-                    .load(club.emblem)
-                    .into(itemView.imgClubEmblem)
+            Picasso.get().load(club.emblem!!).fit().into(itemView.imgClubEmblem)
 
             itemView.setOnClickListener {
                 listener(club)
