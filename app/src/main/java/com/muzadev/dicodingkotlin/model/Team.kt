@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
  * Created by zulfakar on 30/08/18.
  * For educational purposes
  */
+
 data class Team(
         @SerializedName("idTeam")
         val teamId: String? = null,

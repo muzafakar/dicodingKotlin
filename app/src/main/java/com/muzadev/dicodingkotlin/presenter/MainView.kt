@@ -1,5 +1,7 @@
 package com.muzadev.dicodingkotlin.presenter
 
+import com.muzadev.dicodingkotlin.model.Event
+import com.muzadev.dicodingkotlin.model.League
 import com.muzadev.dicodingkotlin.model.Team
 
 /**
@@ -9,5 +11,7 @@ import com.muzadev.dicodingkotlin.model.Team
 interface MainView {
     fun showLoading()
     fun hideLoading()
+    fun showLeagueList(leagues: List<League>)
     fun showTeamList(teams: List<Team>)
+    fun showMatchList(events: List<Event>)
 }

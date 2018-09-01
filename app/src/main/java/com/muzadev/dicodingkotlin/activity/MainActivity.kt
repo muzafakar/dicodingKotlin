@@ -1,100 +1,100 @@
 package com.muzadev.dicodingkotlin.activity
 
+import android.content.Intent
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.LinearLayout.VERTICAL
-import android.widget.ProgressBar
-import android.widget.Spinner
-import com.google.gson.Gson
 import com.muzadev.dicodingkotlin.R
-import com.muzadev.dicodingkotlin.R.color.colorAccent
-import com.muzadev.dicodingkotlin.R.color.colorPrimary
 import com.muzadev.dicodingkotlin.adapter.MainAdapter
-import com.muzadev.dicodingkotlin.api.ApiRepository
+import com.muzadev.dicodingkotlin.model.Event
+import com.muzadev.dicodingkotlin.model.League
 import com.muzadev.dicodingkotlin.model.Team
 import com.muzadev.dicodingkotlin.presenter.MainPresenter
 import com.muzadev.dicodingkotlin.presenter.MainView
-import org.jetbrains.anko.*
-import org.jetbrains.anko.recyclerview.v7.recyclerView
+import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 import org.jetbrains.anko.support.v4.onRefresh
-import org.jetbrains.anko.support.v4.swipeRefreshLayout
 
-class MainActivity : AppCompatActivity(), MainView {
+class MainActivity : AppCompatActivity(), MainView, AnkoLogger {
 
-    private lateinit var listTeam: RecyclerView
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var spinner: Spinner
+    private lateinit var recyclerAdapter: MainAdapter
+    private lateinit var spinnerAdapeter: ArrayAdapter<String>
+    private val events: MutableList<Event> = mutableListOf()
+    private val leagueIds: MutableList<String> = mutableListOf()
+    private val leagueNames: MutableList<String> = mutableListOf()
+    private var leagueId = "4328" //league default
+    private var status = 1  //status default (prev match)
 
-    private var teams: MutableList<Team> = mutableListOf()
     private lateinit var presenter: MainPresenter
-    private lateinit var adapter: MainAdapter
-    private lateinit var leagueName: String
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MainActivityUI().setContentView(this)
+        setContentView(R.layout.activity_main)
 
-        adapter = MainAdapter(teams)
-        listTeam.adapter = adapter
+        presenter = MainPresenter(this)
+        presenter.getLastMatch(leagueId)
+        presenter.getLeagueList()
 
-        val request = ApiRepository()
-        val gson = Gson()
-        presenter = MainPresenter(this, request, gson)
-
-        val spinnerItem = resources.getStringArray(R.array.league)
-        val spinerAdapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, spinnerItem)
-        spinner.adapter = spinerAdapter
-
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                leagueName = spinnerItem[position]
-                presenter.getTeamList(leagueName)
-            }
-
+        recyclerAdapter = MainAdapter(this, events) {
+            val intent = Intent(this, EventDetailActivity::class.java)
+            intent.putExtra("event", it)
+            startActivity(intent)
         }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = recyclerAdapter
+        swipeRefresh.setColorSchemeResources(
+                android.R.color.holo_red_dark,
+                android.R.color.holo_green_dark,
+                android.R.color.holo_blue_dark,
+                android.R.color.holo_orange_dark
+
+        )
 
         swipeRefresh.onRefresh {
-            presenter.getTeamList(leagueName)
+            if (status == 1) {
+                presenter.getLastMatch(leagueId)
+            } else if (status == 2) {
+                presenter.getNextMatch(leagueId)
+            }
         }
 
-
-    }
-
-    inner class MainActivityUI : AnkoComponent<MainActivity> {
-        override fun createView(ui: AnkoContext<MainActivity>) = with(ui) {
-            linearLayout {
-                lparams(width = matchParent, height = wrapContent)
-                orientation = VERTICAL
-                topPadding = dip(16)
-                leftPadding = dip(16)
-                rightPadding = dip(16)
-                spinner = spinner()
-                swipeRefresh = swipeRefreshLayout {
-                    setColorSchemeResources(
-                            android.R.color.holo_blue_light,
-                            android.R.color.holo_green_light,
-                            android.R.color.holo_orange_light,
-                            android.R.color.holo_red_light
-                    )
-                    relativeLayout {
-                        lparams(width = matchParent, height = wrapContent)
-                        listTeam = recyclerView {
-                            lparams(width = matchParent, height = wrapContent)
-                            layoutManager = LinearLayoutManager(ctx)
-                        }
-                    }
+        bottomNav.setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.action_next -> {
+                    presenter.getNextMatch(leagueId)
+                    status = 2
+                    true
+                }
+                R.id.action_prev -> {
+                    presenter.getLastMatch(leagueId)
+                    status = 1
+                    true
+                }
+                else -> {
+                    false
                 }
             }
         }
 
+        spinnerAdapeter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, leagueNames)
+        spLeague.adapter = spinnerAdapeter
+        spLeague.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                leagueId = leagueIds[position]
+                if (status == 1) {
+                    presenter.getLastMatch(leagueId)
+                } else if (status == 2) {
+                    presenter.getNextMatch(leagueId)
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     override fun showLoading() {
@@ -107,10 +107,25 @@ class MainActivity : AppCompatActivity(), MainView {
 
     override fun showTeamList(teams: List<Team>) {
         swipeRefresh.isRefreshing = false
-        this.teams.clear()
-        this.teams.addAll(teams)
-        adapter.notifyDataSetChanged()
+        info { "team: " + teams[0].teamName }
     }
 
+    override fun showMatchList(events: List<Event>) {
+        swipeRefresh.isRefreshing = false
+        this.events.clear()
+        this.events.addAll(events)
+        recyclerAdapter.notifyDataSetChanged()
+    }
+
+    override fun showLeagueList(leagues: List<League>) {
+        leagueNames.clear()
+        leagueIds.clear()
+        for (league in leagues) {
+            leagueNames.add(league.leagueName!!)
+            leagueIds.add(league.leagueId!!)
+        }
+        spinnerAdapeter.notifyDataSetChanged()
+
+    }
 }
 
