@@ -8,7 +8,7 @@ import com.muzadev.dicodingkotlin.model.Team
  * Created by zulfakar on 30/08/18.
  * For educational purposes
  */
-interface MainView {
+interface TeamView {
     fun showLoading()
     fun hideLoading()
     fun showLeagueList(leagues: List<League>)

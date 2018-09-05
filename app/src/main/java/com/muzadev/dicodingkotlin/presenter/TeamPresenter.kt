@@ -9,23 +9,24 @@ import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
 /**
- * Created by zulfakar on 01/09/18.
+ * Created by zulfakar on 30/08/18.
  * For educational purposes
  */
-class EventDetailPresenter(val view: EventDetailView) {
-
+class TeamPresenter(private val view: TeamView) {
     val repository = ApiRepository()
     val gson = Gson()
 
-    fun getTeamBadge(teamName: String?) {
+    fun getTeamList(league: String?) {
+        view.showLoading()
         doAsync {
-            val team: List<Team> = gson.fromJson(repository.doRequest(SportDBApi.getSpecificTeam(teamName)),
-                    TeamResonse::class.java).teams
+            val data: List<Team>? = gson.fromJson(repository.doRequest(SportDBApi.getTeams(league)),
+                    TeamResonse::class.java
+            ).teams
 
             uiThread {
-                team?.let { view.showTeamEmblem(it[0]) }
+                view.hideLoading()
+                data?.let { view.showTeamList(data) }
             }
         }
     }
-
 }
