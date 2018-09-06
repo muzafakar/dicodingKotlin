@@ -3,9 +3,9 @@ package com.muzadev.dicodingkotlin.presenter
 import com.muzadev.dicodingkotlin.model.Team
 
 /**
- * Created by zulfakar on 30/08/18.
+ * Created by zulfakar on 06/09/18.
  * For educational purposes
  */
-interface TeamView : BaseView{
-    fun showTeamList(teams: List<Team>)
+interface FavoriteView : BaseView {
+    fun showTeamDetail(team: Team)
 }

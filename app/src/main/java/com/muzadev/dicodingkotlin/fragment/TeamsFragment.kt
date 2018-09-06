@@ -17,7 +17,7 @@ import com.muzadev.dicodingkotlin.adapter.TeamAdapter
 import com.muzadev.dicodingkotlin.model.Event
 import com.muzadev.dicodingkotlin.model.League
 import com.muzadev.dicodingkotlin.model.Team
-import com.muzadev.dicodingkotlin.presenter.TeamPresenter
+import com.muzadev.dicodingkotlin.presenter.Presenter
 import com.muzadev.dicodingkotlin.presenter.TeamView
 import kotlinx.android.synthetic.main.fragment_teams.view.*
 import org.jetbrains.anko.support.v4.ctx
@@ -33,13 +33,13 @@ class TeamsFragment : Fragment(), TeamView {
     private var leagueList: MutableList<String> = mutableListOf()
     private var listener: OnFragmentInteractionListener? = null
     private lateinit var swRefresh: SwipeRefreshLayout
-    private lateinit var presenter: TeamPresenter
+    private lateinit var presenter: Presenter
     private var leagueName = "English Premiere league" //default league
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         leagueList.addAll(resources.getStringArray(R.array.league))
-        presenter = TeamPresenter(this)
+        presenter = Presenter(this)
         spinnerAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, leagueList)
         adapter = TeamAdapter(ctx, teamList) {
             ctx.startActivity(intentFor<TeamDetailActivity>("team" to it))

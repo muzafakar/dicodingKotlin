@@ -7,19 +7,25 @@ import android.view.Menu
 import android.view.MenuItem
 import com.bumptech.glide.Glide
 import com.muzadev.dicodingkotlin.R
-import com.muzadev.dicodingkotlin.R.menu.favourite_menu
 import com.muzadev.dicodingkotlin.helper.DatabaseHelper
-import com.muzadev.dicodingkotlin.model.Favorite
+import com.muzadev.dicodingkotlin.model.TableConstant
 import com.muzadev.dicodingkotlin.model.Team
+import com.muzadev.dicodingkotlin.presenter.FavoriteView
+import com.muzadev.dicodingkotlin.presenter.Presenter
 import kotlinx.android.synthetic.main.activity_team_detail.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.db.insert
 import org.jetbrains.anko.design.snackbar
+import org.jetbrains.anko.info
 import org.jetbrains.anko.toast
 
-class TeamDetailActivity : AppCompatActivity(), AnkoLogger {
+class TeamDetailActivity : AppCompatActivity(), FavoriteView, AnkoLogger {
+
+
     private var menuItem: Menu? = null
     //    private var isFavorite: Boolean = false
+    private lateinit var presenter: Presenter<FavoriteView>
+    private lateinit var teamName: String
     private lateinit var team: Team
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,12 +33,11 @@ class TeamDetailActivity : AppCompatActivity(), AnkoLogger {
         setContentView(R.layout.activity_team_detail)
         supportActionBar?.title = "Team Detail"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        team = intent.getSerializableExtra("team") as Team
-        Glide.with(this).load(team.teamBadge).into(imgTeam)
-        tvTeamName.text = team.teamName
-        tvTeamYear.text = team.formedYear.toString()
-        tvTeamStadium.text = team.stadium
-        tvTeamDescription.text = team.temDescription
+        presenter = Presenter(this)
+        teamName = intent.getStringExtra("team")
+
+
+        presenter.getSepecificTeam(teamName)
 
     }
 
@@ -42,39 +47,57 @@ class TeamDetailActivity : AppCompatActivity(), AnkoLogger {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(favourite_menu, menu)
+        menuInflater.inflate(R.menu.favourite_menu, menu)
         menuItem = menu
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item!!.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-            favourite_menu -> {
+            R.id.action_favourite -> {
+                toast("favorite")
+                info { "favorite" }
                 addToFavorite()
-                true
+            }
+            android.R.id.home -> {
+                toast("home")
+                info { "home" }
+                finish()
             }
         }
-
-        return super.onOptionsItemSelected(item)
+        return true
     }
 
     private fun addToFavorite() {
         try {
             DatabaseHelper.getInstance(this).use {
-                insert(Favorite.TABLE_NAME,
-                        Favorite.TEAM_NAME to team.teamName,
-                        Favorite.TEAM_ID to team.teamId,
-                        Favorite.TEAM_BADGE to team.teamBadge,
-                        Favorite.TEAM_DESC to team.temDescription
+                insert(TableConstant.TABLE_NAME,
+                        TableConstant.TEAM_ID to team.teamId,
+                        TableConstant.TEAM_NAME to team.teamName,
+                        TableConstant.TEAM_BADGE to team.teamBadge
                 )
             }
-            snackbar(scrollView, "${team.teamName} is added to favorite")
+            snackbar(scrollView, "${team.teamName} succesfully added to favorite").show()
         } catch (e: SQLiteConstraintException) {
-            toast(e.localizedMessage)
+            snackbar(scrollView, e.localizedMessage).show()
         }
     }
+
+    override fun showTeamDetail(team: Team) {
+        this.team = team
+        Glide.with(this).load(team.teamBadge).into(imgTeam)
+        tvTeamName.text = team.teamName
+        tvTeamYear.text = team.formedYear.toString()
+        tvTeamStadium.text = team.stadium
+        tvTeamDescription.text = team.temDescription
+    }
+
+    override fun showLoading() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun hideLoading() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }

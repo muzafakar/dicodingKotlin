@@ -4,6 +4,7 @@
     <item
         android:id="@+id/action_favourite"
         android:icon="@drawable/favourite_selector"
+        android:iconifiedByDefault="false"
         android:title="@string/favorite"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 </menu>
