@@ -1,6 +1,5 @@
 package com.muzadev.dicodingkotlin.activity
 
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.muzadev.dicodingkotlin.R
@@ -9,7 +8,7 @@ import com.muzadev.dicodingkotlin.fragment.TeamsFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger
 
-class HomeActivity : AppCompatActivity(), AnkoLogger, FavouriteFragment.OnFragmentInteractionListener, TeamsFragment.OnFragmentInteractionListener {
+class HomeActivity : AppCompatActivity(), AnkoLogger {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -30,10 +29,6 @@ class HomeActivity : AppCompatActivity(), AnkoLogger, FavouriteFragment.OnFragme
                 }
             }
         }
-    }
-
-    override fun onFragmentInteraction(uri: Uri) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
 

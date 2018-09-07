@@ -2,42 +2,54 @@ package com.muzadev.dicodingkotlin.activity
 
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.bumptech.glide.Glide
 import com.muzadev.dicodingkotlin.R
 import com.muzadev.dicodingkotlin.helper.DatabaseHelper
+import com.muzadev.dicodingkotlin.model.Favorite
 import com.muzadev.dicodingkotlin.model.TableConstant
 import com.muzadev.dicodingkotlin.model.Team
-import com.muzadev.dicodingkotlin.presenter.FavoriteView
 import com.muzadev.dicodingkotlin.presenter.Presenter
+import com.muzadev.dicodingkotlin.presenter.TeamDetailView
 import kotlinx.android.synthetic.main.activity_team_detail.*
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.db.classParser
+import org.jetbrains.anko.db.delete
 import org.jetbrains.anko.db.insert
+import org.jetbrains.anko.db.select
 import org.jetbrains.anko.design.snackbar
-import org.jetbrains.anko.info
-import org.jetbrains.anko.toast
+import org.jetbrains.anko.support.v4.onRefresh
 
-class TeamDetailActivity : AppCompatActivity(), FavoriteView, AnkoLogger {
+class TeamDetailActivity : AppCompatActivity(), TeamDetailView, AnkoLogger {
 
 
     private var menuItem: Menu? = null
-    //    private var isFavorite: Boolean = false
-    private lateinit var presenter: Presenter<FavoriteView>
+    private var isFavorite: Boolean = false
+    private lateinit var presenter: Presenter<TeamDetailView>
     private lateinit var teamName: String
     private lateinit var team: Team
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_team_detail)
-        supportActionBar?.title = "Team Detail"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.title = "Team Detail"
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         presenter = Presenter(this)
         teamName = intent.getStringExtra("team")
-
-
         presenter.getSepecificTeam(teamName)
+        swipeRefresh.setColorSchemeResources(
+                android.R.color.holo_red_light,
+                android.R.color.holo_blue_light,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light
+        )
+        swipeRefresh.onRefresh {
+            presenter.getSepecificTeam(teamName)
+        }
 
     }
 
@@ -52,16 +64,31 @@ class TeamDetailActivity : AppCompatActivity(), FavoriteView, AnkoLogger {
         return true
     }
 
+    private fun setFavorite() {
+        if (isFavorite)
+            menuItem?.getItem(0)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_star_on)
+        else
+            menuItem?.getItem(0)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_star_off)
+    }
+
+    private fun favoriteState() {
+        DatabaseHelper.getInstance(this).use {
+            val result = select(TableConstant.TABLE_NAME).whereArgs("${TableConstant.TEAM_ID} = ${team.teamId}")
+            val favorite = result.parseList(classParser<Favorite>())
+            if (!favorite.isEmpty()) isFavorite = true
+            setFavorite()
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item!!.itemId) {
             R.id.action_favourite -> {
-                toast("favorite")
-                info { "favorite" }
-                addToFavorite()
+                if (isFavorite) removeFromFavorite() else addToFavorite()
+
+                isFavorite = !isFavorite
+                setFavorite()
             }
             android.R.id.home -> {
-                toast("home")
-                info { "home" }
                 finish()
             }
         }
@@ -83,8 +110,20 @@ class TeamDetailActivity : AppCompatActivity(), FavoriteView, AnkoLogger {
         }
     }
 
+    private fun removeFromFavorite() {
+        try {
+            DatabaseHelper.getInstance(this).use {
+                delete(TableConstant.TABLE_NAME, "${TableConstant.TEAM_ID} = ${team.teamId}")
+            }
+            snackbar(scrollView, "${team.teamName} is removed from favorite").show()
+        } catch (e: SQLiteConstraintException) {
+            snackbar(scrollView, e.localizedMessage).show()
+        }
+    }
+
     override fun showTeamDetail(team: Team) {
         this.team = team
+        favoriteState()
         Glide.with(this).load(team.teamBadge).into(imgTeam)
         tvTeamName.text = team.teamName
         tvTeamYear.text = team.formedYear.toString()
@@ -93,11 +132,11 @@ class TeamDetailActivity : AppCompatActivity(), FavoriteView, AnkoLogger {
     }
 
     override fun showLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        swipeRefresh.isRefreshing = true
     }
 
     override fun hideLoading() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        swipeRefresh.isRefreshing = false
     }
 
 }

@@ -6,6 +6,6 @@ import com.muzadev.dicodingkotlin.model.Team
  * Created by zulfakar on 06/09/18.
  * For educational purposes
  */
-interface FavoriteView : BaseView {
+interface TeamDetailView : BaseView {
     fun showTeamDetail(team: Team)
 }

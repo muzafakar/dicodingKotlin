@@ -1,7 +1,5 @@
 package com.muzadev.dicodingkotlin.fragment
 
-import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
@@ -14,8 +12,6 @@ import android.widget.ArrayAdapter
 import com.muzadev.dicodingkotlin.R
 import com.muzadev.dicodingkotlin.activity.TeamDetailActivity
 import com.muzadev.dicodingkotlin.adapter.TeamAdapter
-import com.muzadev.dicodingkotlin.model.Event
-import com.muzadev.dicodingkotlin.model.League
 import com.muzadev.dicodingkotlin.model.Team
 import com.muzadev.dicodingkotlin.presenter.Presenter
 import com.muzadev.dicodingkotlin.presenter.TeamView
@@ -31,9 +27,8 @@ class TeamsFragment : Fragment(), TeamView {
     private lateinit var spinnerAdapter: ArrayAdapter<String>
     private var teamList: MutableList<Team> = mutableListOf()
     private var leagueList: MutableList<String> = mutableListOf()
-    private var listener: OnFragmentInteractionListener? = null
     private lateinit var swRefresh: SwipeRefreshLayout
-    private lateinit var presenter: Presenter
+    private lateinit var presenter: Presenter<TeamView>
     private var leagueName = "English Premiere league" //default league
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +37,7 @@ class TeamsFragment : Fragment(), TeamView {
         presenter = Presenter(this)
         spinnerAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, leagueList)
         adapter = TeamAdapter(ctx, teamList) {
-            ctx.startActivity(intentFor<TeamDetailActivity>("team" to it))
+            ctx.startActivity(intentFor<TeamDetailActivity>("team" to it.teamName))
         }
     }
 
@@ -76,20 +71,6 @@ class TeamsFragment : Fragment(), TeamView {
     }
 
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
     override fun showLoading() {
         swRefresh.isRefreshing = true
     }
@@ -98,7 +79,6 @@ class TeamsFragment : Fragment(), TeamView {
         swRefresh.isRefreshing = false
     }
 
-    override fun showLeagueList(leagues: List<League>) {}
 
     override fun showTeamList(teams: List<Team>) {
         teamList.clear()
@@ -106,22 +86,5 @@ class TeamsFragment : Fragment(), TeamView {
         adapter.notifyDataSetChanged()
     }
 
-    override fun showMatchList(events: List<Event>) {}
-
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
-    interface OnFragmentInteractionListener {
-        fun onFragmentInteraction(uri: Uri)
-    }
 
 }

@@ -33,11 +33,11 @@ class Presenter<in T>(private val view: T) {
     }
 
     fun getSepecificTeam(teamName: String?) {
-        if (view is FavoriteView) {
+        if (view is TeamDetailView) {
             view.showLoading()
             doAsync {
                 val data: Team? = gson.fromJson(repository.doRequest(SportDBApi.getSpecificTeam(teamName)),
-                        Team::class.java)
+                        TeamResonse::class.java).teams[0]
 
                 uiThread {
                     view.hideLoading()
