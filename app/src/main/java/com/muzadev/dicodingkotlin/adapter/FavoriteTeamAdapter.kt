@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.muzadev.dicodingkotlin.R
-import com.muzadev.dicodingkotlin.model.Favorite
+import com.muzadev.dicodingkotlin.model.TeamFavorite
 import kotlinx.android.synthetic.main.item_club.view.*
 
 /**
  * Created by zulfakar on 30/08/18.
  * For educational purposes
  */
-class FavoriteAdapter(private val context: Context, private val favorite: List<Favorite>, private val listener: (Favorite) -> Unit) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
+class FavoriteTeamAdapter(private val context: Context, private val teamFavorite: List<TeamFavorite>, private val listener: (TeamFavorite) -> Unit) : RecyclerView.Adapter<FavoriteTeamAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(LayoutInflater
             .from(context)
@@ -24,18 +24,18 @@ class FavoriteAdapter(private val context: Context, private val favorite: List<F
     )
 
 
-    override fun getItemCount(): Int = favorite.size
+    override fun getItemCount(): Int = teamFavorite.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindItem(favorite[position], listener)
+        holder.bindItem(teamFavorite[position], listener)
     }
 
     inner class ViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
-        fun bindItem(favorite: Favorite, listener: (Favorite) -> Unit) {
-            itemView.tvTeamName.text = favorite.teamName
-            Glide.with(context).load(favorite.teamBadge).into(itemView.imgTeam)
+        fun bindItem(teamFavorite: TeamFavorite, listener: (TeamFavorite) -> Unit) {
+            itemView.tvTeamName.text = teamFavorite.teamName
+            Glide.with(context).load(teamFavorite.teamBadge).into(itemView.imgTeam)
             itemView.setOnClickListener {
-                listener(favorite)
+                listener(teamFavorite)
             }
         }
     }

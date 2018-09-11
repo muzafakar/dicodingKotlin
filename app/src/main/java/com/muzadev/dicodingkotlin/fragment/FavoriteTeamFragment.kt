@@ -9,27 +9,27 @@ import android.view.View
 import android.view.ViewGroup
 import com.muzadev.dicodingkotlin.R
 import com.muzadev.dicodingkotlin.activity.TeamDetailActivity
-import com.muzadev.dicodingkotlin.adapter.FavoriteAdapter
-import com.muzadev.dicodingkotlin.helper.DatabaseHelper
-import com.muzadev.dicodingkotlin.model.Favorite
-import com.muzadev.dicodingkotlin.model.TableConstant
-import kotlinx.android.synthetic.main.fragment_favourite.view.*
+import com.muzadev.dicodingkotlin.adapter.FavoriteTeamAdapter
+import com.muzadev.dicodingkotlin.helper.TeamDBHelper
+import com.muzadev.dicodingkotlin.model.TeamFavorite
+import com.muzadev.dicodingkotlin.model.TeamTableConstant
+import kotlinx.android.synthetic.main.fragment_common_layout.view.*
 import org.jetbrains.anko.db.classParser
 import org.jetbrains.anko.db.select
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.support.v4.intentFor
 import org.jetbrains.anko.support.v4.onRefresh
 
-class FavouriteFragment : Fragment() {
+class FavoriteTeamFragment : Fragment() {
 
 
-    private lateinit var adapter: FavoriteAdapter
-    private var favoriteList: MutableList<Favorite> = mutableListOf()
+    private lateinit var adapterTeam: FavoriteTeamAdapter
+    private var teamFavoriteList: MutableList<TeamFavorite> = mutableListOf()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        adapter = FavoriteAdapter(activity!!.applicationContext, favoriteList) {
+        adapterTeam = FavoriteTeamAdapter(activity!!.applicationContext, teamFavoriteList) {
             ctx.startActivity(intentFor<TeamDetailActivity>("team" to it.teamName))
         }
     }
@@ -38,7 +38,7 @@ class FavouriteFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_favourite, container, false)
+        val view = inflater.inflate(R.layout.fragment_common_layout, container, false)
         swipeRefreshLayout = view.swipeRefresh
         swipeRefreshLayout.setColorSchemeResources(
                 android.R.color.holo_red_light,
@@ -46,23 +46,27 @@ class FavouriteFragment : Fragment() {
                 android.R.color.holo_green_light,
                 android.R.color.holo_orange_light
         )
+
+        getFavoriteTeam()
         swipeRefreshLayout.onRefresh {
             getFavoriteTeam()
         }
+
+        view.recyclerView.layoutManager = LinearLayoutManager(context)
+        view.recyclerView.adapter = adapterTeam
+
         getFavoriteTeam()
-        view.rvFavourite.layoutManager = LinearLayoutManager(activity!!.applicationContext)
-        view.rvFavourite.adapter = adapter
         return view
     }
 
 
     private fun getFavoriteTeam() {
-        DatabaseHelper.getInstance(context!!).use {
-            val queryResult = select(TableConstant.TABLE_NAME)
-            val favoriteTeam = queryResult.parseList(classParser<Favorite>())
-            favoriteList.clear()
-            favoriteList.addAll(favoriteTeam)
-            adapter.notifyDataSetChanged()
+        TeamDBHelper.getInstance(context!!).use {
+            val queryResult = select(TeamTableConstant.TABLE_NAME)
+            val favoriteTeam = queryResult.parseList(classParser<TeamFavorite>())
+            teamFavoriteList.clear()
+            teamFavoriteList.addAll(favoriteTeam)
+            adapterTeam.notifyDataSetChanged()
             swipeRefreshLayout.isRefreshing = false
         }
     }

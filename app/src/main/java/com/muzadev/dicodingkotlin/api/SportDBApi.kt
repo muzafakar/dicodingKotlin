@@ -9,13 +9,14 @@ import com.muzadev.dicodingkotlin.BuildConfig
  */
 object SportDBApi {
 
-    fun getLeagues(): String {
+    fun getEventDetail(eventId: String?): String {
         return Uri.parse(BuildConfig.BASE_URL).buildUpon()
                 .appendPath("api")
                 .appendPath("v1")
                 .appendPath("json")
                 .appendPath(BuildConfig.TSDB_API_KEY)
-                .appendPath("all_leagues.php")
+                .appendPath("lookupevent.php")
+                .appendQueryParameter("id", eventId)
                 .build()
                 .toString()
     }
@@ -45,7 +46,7 @@ object SportDBApi {
                 .toString()
     }
 
-    fun getLastMatches(leagueId: String?): String {
+    fun getPrevMatches(leagueId: String?): String {
         return Uri.parse(BuildConfig.BASE_URL).buildUpon()
                 .appendPath("api")
                 .appendPath("v1")
